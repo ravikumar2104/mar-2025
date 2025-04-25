@@ -1,0 +1,30 @@
+#!/bin/bash
+# Update ubuntu
+sudo apt update -y
+
+# Install necessary tools required
+sudo apt install -y openjdk-21-jdk
+
+# Add pkg key to add Jenkins to apt repo list and install jenkins with apt 
+sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt update -y
+sudo apt install -y jenkins
+
+# make Jenkins user sudoers user
+JENKINS_USER="jenkins"
+sudo usermod -aG sudo $JENKINS_USER
+echo "$JENKINS_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$JENKINS_USER
+
+# start jenkisn services if no already running
+if sudo systemctl is-active --quite jenkins; then
+  echo "jenkins services is already running."
+else
+  echo "jenkins services is not running. Attempting to start jenkins..."
+  sudo systemctl start jenkins
+  if sudo systemctl is-active --quite jenkins; then
+    echo "jenkins service has been started successfully."
+else
+    echo "failed to start jenkin services."
+  fi
+fi
